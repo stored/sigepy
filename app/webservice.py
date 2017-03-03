@@ -3,16 +3,9 @@ import os
 from app import choices
 
 """
-SIGEP_SKIP_VALIDATION = True
-
-SIGEP_CEP_ORIGIN = '14401426'  # OK
-SIGEP_CARD = '0070490287'  # OK
 SIGEP_ADMINISTRATION_CODE = '14502607'  # OK
-SIGEP_CONTRACT = '9912366511'  # OK
-SIGEP_CNPJ = '20023005000147'  # OK
 SIGEP_REGIONAL_BOARD_CODE = '00074'
 SIGEP_MAX_RESULTS = 1000
-
 SIGEP_STORE_LOGO = 'https://pr-ahimsa.s3-sa-east-1.amazonaws.com/static/img/logo_footer.png'  # Logo pendente
 SIGEP_CHANCELA_STATE = 'SPI'
 """
@@ -22,14 +15,18 @@ class Sigep(object):
     schematron = None
     validade_xsd = 'templates/commerce_correios_sigep/xml/schema.xsd'
 
-    def __init__(self, user, password,  sandbox=False):
+    def __init__(self, contract, cnpj, user, password, card, origin_zipcode, sandbox=False):
         if sandbox:
             self.url = choices.SIGEP_SANDBOX_URL
         else:
             self.url = choices.SIGEP_PRODUCTION_URL
 
+        self.contract = contract
+        self.cnpj = cnpj
         self.user = user
         self.password = password
+        self.card = card
+        self.origin_zipcode = origin_zipcode
 
         self.client = Client(
             self.url,
@@ -39,7 +36,7 @@ class Sigep(object):
     def get_xml_plp(self, plp):
         return self.client.service.solicitaPLP(
             numEtiqueta=[i.tracking_code for i in plp.sigeporderinline_set.all()],
-            idPlpMaster=long(plp.plp), usuario=SIGEP_USER, senha=SIGEP_PASSWORD)
+            idPlpMaster=long(plp.plp), usuario=self.user, senha=self.password)
 
     def validate_xml(self, xml):
         filename = os.path.join(
@@ -54,8 +51,8 @@ class Sigep(object):
 
     def get_plp_data(self, qs):
         return {
-            'SIGEP_CARD': choices.SIGEP_CARD,
-            'SIGEP_CONTRACT': choices.SIGEP_CONTRACT,
+            'SIGEP_CARD': self.card,
+            'SIGEP_CONTRACT': self.contract,
             'SIGEP_REGIONAL_BOARD_CODE': choices.SIGEP_REGIONAL_BOARD_CODE,
             'SIGEP_ADMINISTRATION_CODE': choices.SIGEP_ADMINISTRATION_CODE,
             'SIGEP_STORE_INFORMATION': choices.SIGEP_STORE_INFORMATION,
@@ -92,7 +89,7 @@ class Sigep(object):
         plp_number = self.client.service.fechaPlpVariosServicos(
             xml=xml,
             idPlpCliente=long(plp_intern),
-            cartaoPostagem=SIGEP_CARD,
+            cartaoPostagem=self.card,
             listaEtiquetas=tracking_code,
             usuario=self.user,
             senha=self.password,
@@ -115,31 +112,28 @@ class Sigep(object):
 
     def search_service(self):
         return self.client.service.buscaServicos(
-            idContrato=SIGEP_CONTRACT,
-            idCartaoPostagem=SIGEP_CARD,
+            idContrato=self.contract,
+            idCartaoPostagem=self.card,
             usuario=self.user,
             senha=self.password,
         )
 
-    def check_service_available(self, code, zipCodeDest):
-        if SIGEP_SKIP_VALIDATION:
-            return True
-
-        zipCodeDest = zipCodeDest.replace('-', '')
-        zipCodeDest = zipCodeDest.rjust(8, '0')
+    def check_service_available(self, code, zip_code):
+        zip_code = zipCodeDest.replace('-', '')
+        zip_code = zipCodeDest.rjust(8, '0')
 
         try:
             response = self.client.service.verificaDisponibilidadeServico(
                 codAdministrativo=SIGEP_ADMINISTRATION_CODE,
-                numeroServico=code,
-                cepOrigem=SIGEP_CEP_ORIGIN,
-                cepDestino=zipCodeDest,
+                cepOrigem=self.origin_zipcode,
                 usuario=self.user,
                 senha=self.password,
+                cepDestino=zip_code,
+                numeroServico=code,
             )
             logger.info(u'check_service_available for code {0} and zipCodeDest {1}: {2}'.format(
                 code,
-                zipCodeDest,
+                zip_code,
                 response,
             ))
             return response
@@ -150,8 +144,8 @@ class Sigep(object):
 
     def check_client_service(self):
         resp = self.client.service.buscaCliente(
-            idContrato=SIGEP_CONTRACT,
-            idCartaoPostagem=SIGEP_CARD,
+            idContrato=self.contract,
+            idCartaoPostagem=self.card,
             usuario=self.user,
             senha=self.password,
         )
@@ -159,11 +153,11 @@ class Sigep(object):
     def get_post_code(self, service, qty=1):
         post = self.client.service.solicitaEtiquetas(
             tipoDestinatario='C',
-            identificador=SIGEP_CNPJ,
+            identificador=self.cnpj,
             idServico=service,
-            qtdEtiquetas=qty,
             usuario=self.user,
             senha=self.password,
+            qtdEtiquetas=qty,
         )
         code = post.split(',')
         if qty == 1:
@@ -172,9 +166,9 @@ class Sigep(object):
 
     def get_verification_code(self, code):
         verification = self.client.service.geraDigitoVerificadorEtiquetas(
-            etiquetas=code,
             usuario=self.user,
             senha=self.password,
+            etiquetas=code,
         )
         return code.replace(' ', str(verification[0]))
 
