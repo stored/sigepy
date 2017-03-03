@@ -1,6 +1,6 @@
 # coding: utf-8
 
-# adicionar pytest
+# TODO adicionar pytest
 class SigepTestCase():
 
     object_list = [{
