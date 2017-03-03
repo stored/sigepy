@@ -1,18 +1,13 @@
 # coding: utf-8
 import os
 import logging
+import StringIO
 from sigep import choices
-# TODO change to zeep Xcode problem
 from suds import WebFault
 from suds.client import Client
 
 from jinja2 import Template
-
-"""
-SIGEP_MAX_RESULTS = 1000
-SIGEP_STORE_LOGO = 'https://pr-ahimsa.s3-sa-east-1.amazonaws.com/static/img/logo_footer.png'  # Logo pendente
-SIGEP_CHANCELA_STATE = 'SPI'
-"""
+from lxml import etree
 
 logger = logging.getLogger('sigep.webservice')
 
@@ -21,44 +16,76 @@ class Sigep(object):
     schematron = None
     validade_xsd = 'templates/commerce_correios_sigep/xml/schema.xsd'
 
-    def __init__(self, contract, cnpj, user, password, card, origin_zipcode,admin_code, reginal_code, store_info, sandbox=False):
-        if sandbox:
+    def __init__(self, **credentials):
+        """
+        :params:
+            credentials: {
+                'contract': '',
+                'cnpj': '',
+                'user': '',
+                'password': '',
+                'card': '',
+                'origin_zipcode': '',
+                'admin_code': '',
+                'reginal_code': '',
+                'sender_info': {
+                    'name': '',
+                    'street': '',
+                    'number': '',
+                    'complement': '',
+                    'neighborhood': '',
+                    'zipcode': '',
+                    'city': '',
+                    'state': '',
+                    'phone': '',
+                    'fax': '',
+                    'email': '',
+                }
+                'sandbox': 'True',
+            }
+        """
+        if credentials.get('sandbox'):
             self.url = choices.SIGEP_SANDBOX_URL
         else:
             self.url = choices.SIGEP_PRODUCTION_URL
 
-        self.contract = contract
-        self.cnpj = cnpj
-        self.user = user
-        self.password = password
-        self.card = card
-        self.origin_zipcode = origin_zipcode
-        self.admin_code = admin_code
-        self.reginal_code = reginal_code
-        self.store_info = store_info
+        self.contract = credentials['contract']
+        self.cnpj = credentials['cnpj']
+        self.user = credentials['user']
+        self.password = credentials['password']
+        self.card = credentials['card']
+        self.origin_zipcode = credentials['origin_zipcode']
+        self.admin_code = credentials['admin_code']
+        self.reginal_code = credentials['reginal_code']
+        self.sender_info = credentials['sender_info']
 
         self.client = Client(
             self.url,
             location=self.url.replace('?wsdl', '')
         )
 
-    def get_xml_plp(self, plp_number, trackin_code_list):
-        return self.client.service.solicitaPLP(
+    def request_xml_plp(self, plp_number, trackin_code_list):
+        plp = self.client.service.solicitaPLP(
             numEtiqueta=trackin_code_list,
             idPlpMaster=plp_number,
             usuario=self.user,
             senha=self.password
         )
+        logger.info(u'request_xml_plp for PLP {} and trackingcode list: {}'.format(
+            plp_number,
+            trackin_code_list,
+        ))
+        return plp
 
-    # def validate_xml(self, xml):
-    #     filename = os.path.join(os.path.dirname(
-    #         os.path.abspath(__file__)), self.validade_xsd)
-    #     sct_doc = etree.parse(filename)
+    def validate_xml(self, xml):
+        filename = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), self.validade_xsd)
+        sct_doc = etree.parse(filename)
 
-    #     schema = etree.XMLSchema(etree=sct_doc)
+        schema = etree.XMLSchema(etree=sct_doc)
 
-    #     doc = etree.parse(StringIO.StringIO(xml))
-    #     schema.assertValid(doc)
+        doc = etree.parse(StringIO.StringIO(xml))
+        schema.assertValid(doc)
 
     def search_service(self):
         return self.client.service.buscaServicos(
@@ -88,9 +115,8 @@ class Sigep(object):
             ))
             return response
 
-        except WebFault as exception:
-            logger.info(u'check_service_available WebFault Exception: {0}'.format(code))
-            logger.info(u'{0}'.format(exception))
+        except WebFault as e:
+            logger.error(u'check_service_available WebFault Exception: {} for code {}'.format(e, code))
             return False
 
     def check_client_service(self):
@@ -130,33 +156,33 @@ class Sigep(object):
     def _remove_dv_tracking_code(self, tracking_code):
         return '%s%s' % (tracking_code[:-3], tracking_code[-2:])
 
-    def create_plp(self, item_list):
+    def create_plp(self, object_list):
         data = {
-            'SIGEP_CARD': self.card,
-            'SIGEP_CONTRACT': self.contract,
-            'SIGEP_REGIONAL_BOARD_CODE': self.reginal_code,
-            'SIGEP_ADMINISTRATION_CODE': self.admin_code,
-            'SIGEP_STORE_INFORMATION': self.store_info,
-            'item_list': item_list,
+            'card': self.card,
+            'contract': self.contract,
+            'reginal_code': self.reginal_code,
+            'admin_code': self.admin_code,
+            'sender_info': self.sender_info,
+            'object_list': object_list,
         }
 
         xml = Template('sigep/xml/plp.xml', data)
-        # xml = xml.encode('ascii', 'xmlcharrefreplace')
-        # xml = xml.replace("  ", "")
-        # xml = xml.replace('\n', '')
-        # xml = xml.replace('\t', '')
-        # xml = xml.replace("> <", "><")
+        xml = xml.encode('ascii', 'xmlcharrefreplace')
+        xml = xml.replace("  ", "")
+        xml = xml.replace('\n', '')
+        xml = xml.replace('\t', '')
+        xml = xml.replace("> <", "><")
 
-        # self.validate_xml(xml)
+        self.validate_xml(xml)
 
         tracking_code_list = []
-        for item in item_list:
+        for item in object_list:
             tracking_code = self._remove_dv_tracking_code(item.get('tracking_code'))
             tracking_code_list.append(tracking_code)
 
-        logger.info(u'create_plp - xml: {} tracking_code: {}'.format(
+        logger.info(u'create_plp - xml: {} tracking_code_list: {}'.format(
             xml,
-            ';'.join(tracking_code_list),
+            ', '.join(tracking_code_list),
         ))
 
         # plp = Plp(user=user)
@@ -174,8 +200,7 @@ class Sigep(object):
         # plp.plp_intern = plp_intern
         # plp.save()
 
-        logger.info(u'RESPONSE create_plp user: {0} tracking_code: {1} plp: {2} plp_intern: {3}'.format(
-            user,
+        logger.info(u'create_plp - tracking_code_list: {} plp: {} plp_intern: {}'.format(
             ';'.join(tracking_code_list),
             plp_number,
             plp_intern

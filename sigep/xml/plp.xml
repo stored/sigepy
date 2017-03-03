@@ -14,17 +14,17 @@
         <numero_diretoria>{{ reginal_code }}</numero_diretoria>
         <codigo_administrativo>{{ admin_code }}</codigo_administrativo>
 
-        <nome_remetente><![CDATA[{{ sender_name }}]]></nome_remetente>
-        <logradouro_remetente><![CDATA[{{ sender_street }}]]></logradouro_remetente>
-        <numero_remetente>{{ sender_number }}</numero_remetente>
-        <complemento_remetente><![CDATA[{{ sender_complement }}]]></complemento_remetente>
-        <bairro_remetente><![CDATA[{{ sender_neighborhood }}]]></bairro_remetente>
-        <cep_remetente><![CDATA[{{ sender_zipcode }}]]></cep_remetente>
-        <cidade_remetente><![CDATA[{{ sender_city }}]]></cidade_remetente>
-        <uf_remetente>{{ sender_state }}</uf_remetente>
-        <telefone_remetente><![CDATA[{{ sender_phone }}]]></telefone_remetente>
-        <fax_remetente><![CDATA[{{ sender_fax }}]]></fax_remetente>
-        <email_remetente><![CDATA[{{ sender_email }}]]></email_remetente>
+        <nome_remetente><![CDATA[{{ sender_info.name }}]]></nome_remetente>
+        <logradouro_remetente><![CDATA[{{ sender_info.street }}]]></logradouro_remetente>
+        <numero_remetente>{{ sender_info.number }}</numero_remetente>
+        <complemento_remetente><![CDATA[{{ sender_info.complement }}]]></complemento_remetente>
+        <bairro_remetente><![CDATA[{{ sender_info.neighborhood }}]]></bairro_remetente>
+        <cep_remetente><![CDATA[{{ sender_info.zipcode }}]]></cep_remetente>
+        <cidade_remetente><![CDATA[{{ sender_info.city }}]]></cidade_remetente>
+        <uf_remetente>{{ sender_info.state }}</uf_remetente>
+        <telefone_remetente><![CDATA[{{ sender_info.phone }}]]></telefone_remetente>
+        <fax_remetente><![CDATA[{{ sender_info.fax }}]]></fax_remetente>
+        <email_remetente><![CDATA[{{ sender_info.email }}]]></email_remetente>
     </remetente>
     <forma_pagamento/>
 
