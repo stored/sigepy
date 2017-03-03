@@ -1,5 +1,4 @@
 # coding: utf-8
-import os
 import logging
 from sigep import choices
 # TODO change to zeep Xcode problem
@@ -21,7 +20,7 @@ class Sigep(object):
     schematron = None
     validade_xsd = 'templates/commerce_correios_sigep/xml/schema.xsd'
 
-    def __init__(self, contract, cnpj, user, password, card, origin_zipcode,admin_code, reginal_code, store_info, sandbox=False):
+    def __init__(self, contract, cnpj, user, password, card, origin_zipcode, admin_code, regional_code, store_info, sandbox=False):
         if sandbox:
             self.url = choices.SIGEP_SANDBOX_URL
         else:
@@ -34,7 +33,7 @@ class Sigep(object):
         self.card = card
         self.origin_zipcode = origin_zipcode
         self.admin_code = admin_code
-        self.reginal_code = reginal_code
+        self.regional_code = regional_code
         self.store_info = store_info
 
         self.client = Client(
