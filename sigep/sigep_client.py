@@ -22,15 +22,15 @@ class Sigep(object):
         Cliente para o SIGEP (Sistema de Gerenciamento de Postagens) dos correios
 
         :param contract:
-        :param cnpj:
-        :param user:
-        :param password:
+        :param cnpj: CNPJ do usuário
+        :param user: Nome do usuário
+        :param password: Senha de acesso
         :param card:
-        :param origin_zipcode:
+        :param origin_zipcode: CEP de origem
         :param admin_code:
         :param regional_code:
-        :param sender_info: name, street, number, complement, neighborhood, zipcode, city, state, phone, fax, email
-        :param sandbox: Sandbox mode
+        :param sender_info: (name, street, number, complement, neighborhood, zipcode, city, state, phone, fax, email)
+        :param sandbox: Modo sandbox, para testes
         """
         self.url = self.SIGEP_SANDBOX_URL if sandbox else self.SIGEP_PRODUCTION_URL
         self.contract = contract
@@ -57,7 +57,7 @@ class Sigep(object):
         """
         Valida se o XML da PLP é valido baseado no schema.xsd se for valido não retorna nada
 
-        :param xml: Xml que contem a PLP gerada
+        :param xml: XML que contém a PLP gerada
         :return:
         :raises: AssertException, se inválido
         """
@@ -105,11 +105,11 @@ class Sigep(object):
 
     def check_service_available(self, code, zip_code):
         """
-        Retorna um booleano, informando se o serviço esta ou não disponível
+        Consulta a disponibilidade de um serviço para um determinado CEP.
 
-        :param code:
-        :param zip_code:
-        :return: True/False or {'mensagem_erro': 'mensagem do erro'}
+        :param code: Código do serviço
+        :param zip_code: CEP
+        :return: {'mensagem_erro': 'mensagem do erro'}, ou False, se offline
         """
         zip_code = zip_code.replace('-', '')
         zip_code = zip_code.rjust(8, '0')
@@ -136,11 +136,11 @@ class Sigep(object):
 
     def get_client_data(self):
         """
-        Busca dados referênte ao contrato no SIGEP
+        Busca dados do usuário no SIGEP
 
         :return: XML contendo informações dos contratos do cliente
         """
-        self.client.service.buscaCliente(
+        return self.client.service.buscaCliente(
             idContrato=self.contract,
             idCartaoPostagem=self.card,
             usuario=self.user,
@@ -170,7 +170,7 @@ class Sigep(object):
 
     def generate_verification_code(self, tracking_code):
         """
-        Gera digito verificador para um determinado código de rastreio
+        Gera dígito verificador para um determinado código de rastreio
 
         :param tracking_code: Código de rastreio sem digito verificador
         :return: Código de rastreio com digito verificador
@@ -184,10 +184,10 @@ class Sigep(object):
 
     def get_new_tracking_code(self, service_id):
         """
-        Utiliza os serviços do SIGEP para gerar um código de rastreio com digito verificador
+        Utiliza os serviços do SIGEP para gerar um código de rastreio com dígito verificador
 
         :param service_id: ID do serviço (PAC, SEDEX)
-        :return: Código de rastreio com digito verificador
+        :return: Código de rastreio com dígito verificador
         """
         code = self.request_tracking_codes(service=service_id)
         return self.generate_verification_code(code[0])
@@ -203,7 +203,7 @@ class Sigep(object):
         data = {
             'card': self.card,
             'contract': self.contract,
-            'reginal_code': self.reginal_code,
+            'reginal_code': self.regional_code,
             'admin_code': self.admin_code,
             'sender_info': self.sender_info,
             'object_list': object_list,
@@ -237,10 +237,7 @@ class Sigep(object):
             senha=self.password,
         )
 
-        logger.info(u'create_plp - tracking_code_list: {} plp: {}'.format(
-            ', '.join(tracking_code_list),
-            plp_id,
-        ))
+        logger.info(u'create_plp - tracking_code_list: {} plp: {}'.format(', '.join(tracking_code_list), plp_id))
 
         return {
             'plp_id': plp_id,
