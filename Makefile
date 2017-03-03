@@ -1,12 +1,8 @@
-.PHONY: install clean test retest coverage docs
+.PHONY: install clean test coverage docs
 
 install:
 	pip install -e .[docs,test]
 	pip install bumpversion twine wheel
-
-lint:
-	flake8 src/ tests/
-	isort --recursive --check-only --diff src tests
 
 clean:
 	find . -name '*.pyc' -delete
@@ -15,13 +11,11 @@ clean:
 test:
 	py.test -vvv
 
-retest:
-	py.test -vvv --lf
-
 coverage:
 	py.test --cov=sigep --cov-report=term-missing --cov-report=html
 
 docs:
+	phinx-apidoc sigep -o docs/source
 	$(MAKE) -C docs html
 
 release:

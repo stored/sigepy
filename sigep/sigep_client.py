@@ -1,12 +1,12 @@
 # coding: utf-8
-import os
-import logging
 import StringIO
-from suds import WebFault
-from suds.client import Client
+import logging
+import os
 
 from jinja2 import Template
 from lxml import etree
+from suds import WebFault
+from suds.client import Client
 
 logger = logging.getLogger('sigep.webservice')
 
@@ -20,9 +20,7 @@ class Sigep(object):
         """
         Cliente para o SIGEP (Sistema de Gerenciamento de Postagens)
         dos correios
-
-        :params:
-            credentials: {
+        :param credentials: {
                 'contract': '',
                 'cnpj': '',
                 'user': '',
@@ -69,22 +67,19 @@ class Sigep(object):
 
     def _remove_dv_tracking_code(self, tracking_code):
         """
-        :param:
-            tracking_code -> Código de rastreio com digito a ser removido
 
-        :return:
-            código de rastreio sem digito
+        :param tracking_code: Código de rastreio com digito a ser removido
+        :return: código de rastreio sem digito
         """
         return '%s%s' % (tracking_code[:-3], tracking_code[-2:])
 
     def _validate_xml(self, xml):
         """
         Valida se o XML da PLP é valido baseado no schema.xsd
-        se for valido não retorna nada, se for inválido lança um
-        AssertException
-
-        :param:
-            xml -> Xml que contem a PLP gerada
+        se for valido não retorna nada
+        :param xml: Xml que contem a PLP gerada
+        :return:
+        :raises: AssertException, se inválido
         """
         filename = os.path.join(os.path.dirname(
             os.path.abspath(__file__)), self.validade_xsd)
@@ -98,12 +93,9 @@ class Sigep(object):
     def request_xml_plp(self, plp_number, tracking_code_list):
         """
         Consulta PLP já gerada
-        :params:
-            plp_number -> Número da PLP gerada
-            tracking_code_list -> lista de códigos de rastreio
-
-        :return:
-            XML contendo as PLPs geradas para os códigos de rastreio informados
+        :param plp_number: Número da PLP gerada
+        :param tracking_code_list: lista de códigos de rastreio
+        :return: XML contendo as PLPs geradas para os códigos de rastreio informados
         """
         plp = self.client.service.solicitaPLP(
             numEtiqueta=tracking_code_list,
@@ -120,8 +112,7 @@ class Sigep(object):
     def search_service(self):
         """
         Lista os serviços disponíveis para um determinado contrato
-        :return:
-            XML com os serviços disponíveis para o contrato
+        :return: XML com os serviços disponíveis para o contrato
         """
         return self.client.service.buscaServicos(
             idContrato=self.contract,
@@ -133,8 +124,9 @@ class Sigep(object):
     def check_service_available(self, code, zip_code):
         """
         Retorna um booleano, informando se o serviço esta ou não disponível
-        :return:
-            Boolean ou dict {'mensagem_erro': 'mensagem do erro'}
+        :param code:
+        :param zip_code:
+        :return: True/False or {'mensagem_erro': 'mensagem do erro'}
         """
         zip_code = zip_code.replace('-', '')
         zip_code = zip_code.rjust(8, '0')
@@ -162,10 +154,7 @@ class Sigep(object):
     def get_client_data(self):
         """
         Busca dados referênte ao contrato no SIGEP
-
-        :return:
-            XML contendo informações dos
-            contratos do cliente.
+        :return: XML contendo informações dos contratos do cliente
         """
         self.client.service.buscaCliente(
             idContrato=self.contract,
@@ -177,12 +166,9 @@ class Sigep(object):
     def request_tracking_codes(self, service_id, amount=1):
         """
         Solicita novos códigos de rastreio para as etiquetas
-
-        :params:
-            amount -> Quantidade de etiquetas a serem geradas
-            service_id -> ID do serviço (PAC, SEDEX)
-        :return:
-            lista com as etiquetas já com o digito verificador.
+        :param service_id: ID do serviço (PAC, SEDEX)
+        :param amount: Quantidade de etiquetas a serem geradas
+        :return: lista com as etiquetas já com o digito verificador.
         """
         post = self.client.service.solicitaEtiquetas(
             tipoDestinatario='C',
@@ -200,12 +186,8 @@ class Sigep(object):
     def generate_verification_code(self, tracking_code):
         """
         Gera digito verificador para um determinado código de rastreio
-
-        :param:
-            tracking_code -> Código de rastreio sem digito verificador
-
-        :return:
-            Código de rastreio com digito verificador
+        :param tracking_code: Código de rastreio sem digito verificador
+        :return: Código de rastreio com digito verificador
         """
         verification = self.client.service.geraDigitoVerificadorEtiquetas(
             usuario=self.user,
@@ -216,14 +198,9 @@ class Sigep(object):
 
     def get_new_tracking_code(self, service_id):
         """
-        Utiliza os serviços do SIGEP para gerar um código de rastreio
-        com digito verificador
-
-        :params:
-            service_id -> ID do serviço (PAC, SEDEX)
-
-        :return:
-            Código de rastreio com digito verificador
+        Utiliza os serviços do SIGEP para gerar um código de rastreio com digito verificador
+        :param service_id: ID do serviço (PAC, SEDEX)
+        :return: Código de rastreio com digito verificador
         """
         code = self.request_tracking_codes(service=service_id)
         return self.generate_verification_code(code[0])
@@ -231,31 +208,9 @@ class Sigep(object):
     def create_plp(self, intern_plp_number, object_list):
         """
         Gera uma nova PLP (Pré Lista de Postagem)
-        :params:
-            intern_plp_number -> Número de controle interno sequêncial para a geração da PLP
-            object_list -> [{
-                'tracking_code': '',
-                'service_code': '',
-                'weight': '',
-                'receiver_name': '',
-                'receiver_home_phone': '',
-                'receiver_mobile_phone': '',
-                'receiver_email': '',
-                'receiver_address': '',
-                'receiver_complement': '',
-                'receiver_number': '',
-                'receiver_neighborhood': '',
-                'receiver_city': '',
-                'receiver_state': '',
-                'receiver_zip_code': '',
-                'nfe_number': '',
-                'is_insurance': True,
-                'total': '', # preencher formatado se is_insurance for True
-                'dimension_height': '',
-                'dimension_width': '',
-                'dimension_length': '',
-                'dimension_diamater': '', # default 5
-            }]
+        :param intern_plp_number: Número de controle interno sequêncial para a geração da PLP
+        :param object_list:
+        :return:
         """
         data = {
             'card': self.card,
