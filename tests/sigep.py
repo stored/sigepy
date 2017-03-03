@@ -37,7 +37,6 @@ class SigepTestCase():
             'receiver_state': '',
             'receiver_zip_code': '',
             'nfe_number': '',
-
             'is_insurance': True,
             'total': '', # preencher formatado se is_insurance for True
             'dimension_height': '',

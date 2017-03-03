@@ -1,4 +1,5 @@
 # coding: utf-8
+import os
 import logging
 import StringIO
 from sigep import choices
@@ -13,10 +14,13 @@ logger = logging.getLogger('sigep.webservice')
 
 class Sigep(object):
     schematron = None
-    validade_xsd = 'templates/commerce_correios_sigep/xml/schema.xsd'
+    validade_xsd = 'sigepy/xml/schema.xsd'
 
     def __init__(self, **credentials):
         """
+        Cliente para o SIGEP (Sistema de Gerenciamento de Postagens)
+        dos correios
+
         :params:
             credentials: {
                 'contract': '',
@@ -63,30 +67,62 @@ class Sigep(object):
             location=self.url.replace('?wsdl', '')
         )
 
-    def request_xml_plp(self, plp_number, trackin_code_list):
-        plp = self.client.service.solicitaPLP(
-            numEtiqueta=trackin_code_list,
-            idPlpMaster=plp_number,
-            usuario=self.user,
-            senha=self.password
-        )
-        logger.info(u'request_xml_plp for PLP {} and trackingcode list: {}'.format(
-            plp_number,
-            trackin_code_list,
-        ))
-        return plp
+    def _remove_dv_tracking_code(self, tracking_code):
+        """
+        :param:
+            tracking_code -> Código de rastreio com digito a ser removido
 
-    def validate_xml(self, xml):
+        :return:
+            código de rastreio sem digito
+        """
+        return '%s%s' % (tracking_code[:-3], tracking_code[-2:])
+
+    def _validate_xml(self, xml):
+        """
+        Valida se o XML da PLP é valido baseado no schema.xsd
+        se for valido não retorna nada, se for inválido lança um
+        AssertException
+
+        :param:
+            xml -> Xml que contem a PLP gerada
+        """
         filename = os.path.join(os.path.dirname(
             os.path.abspath(__file__)), self.validade_xsd)
-        sct_doc = etree.parse(filename)
 
-        schema = etree.XMLSchema(etree=sct_doc)
+        parsed_file = etree.parse(filename)
+        schema = etree.XMLSchema(etree=parsed_file)
 
         doc = etree.parse(StringIO.StringIO(xml))
         schema.assertValid(doc)
 
+    def request_xml_plp(self, plp_number, tracking_code_list):
+        """
+        Consulta PLP já gerada
+        :params:
+            plp_number -> Número da PLP gerada
+            tracking_code_list -> lista de códigos de rastreio
+
+        :return:
+            XML contendo as PLPs geradas para os códigos de rastreio informados
+        """
+        plp = self.client.service.solicitaPLP(
+            numEtiqueta=tracking_code_list,
+            idPlpMaster=plp_number,
+            usuario=self.user,
+            senha=self.password
+        )
+        logger.info(u'request_xml_plp for PLP {} and tracking_code_list: {}'.format(
+            plp_number,
+            tracking_code_list,
+        ))
+        return plp
+
     def search_service(self):
+        """
+        Lista os serviços disponíveis para um determinado contrato
+        :return:
+            XML com os serviços disponíveis para o contrato
+        """
         return self.client.service.buscaServicos(
             idContrato=self.contract,
             idCartaoPostagem=self.card,
@@ -95,6 +131,11 @@ class Sigep(object):
         )
 
     def check_service_available(self, code, zip_code):
+        """
+        Retorna um booleano, informando se o serviço esta ou não disponível
+        :return:
+            Boolean ou dict {'mensagem_erro': 'mensagem do erro'}
+        """
         zip_code = zip_code.replace('-', '')
         zip_code = zip_code.rjust(8, '0')
 
@@ -118,7 +159,14 @@ class Sigep(object):
             logger.error(u'check_service_available WebFault Exception: {} for code {}'.format(e, code))
             return False
 
-    def check_client_service(self):
+    def get_client_data(self):
+        """
+        Busca dados referênte ao contrato no SIGEP
+
+        :return:
+            XML contendo informações dos
+            contratos do cliente.
+        """
         self.client.service.buscaCliente(
             idContrato=self.contract,
             idCartaoPostagem=self.card,
@@ -126,36 +174,89 @@ class Sigep(object):
             senha=self.password,
         )
 
-    def get_post_code(self, service, qty=1):
+    def request_tracking_codes(self, service_id, amount=1):
+        """
+        Solicita novos códigos de rastreio para as etiquetas
+
+        :params:
+            amount -> Quantidade de etiquetas a serem geradas
+            service_id -> ID do serviço (PAC, SEDEX)
+        :return:
+            lista com as etiquetas já com o digito verificador.
+        """
         post = self.client.service.solicitaEtiquetas(
             tipoDestinatario='C',
             identificador=self.cnpj,
-            idServico=service,
+            idServico=service_id,
             usuario=self.user,
             senha=self.password,
-            qtdEtiquetas=qty,
+            qtdEtiquetas=amount,
         )
         code = post.split(',')
-        if qty == 1:
+        if amount == 1:
             return [code[0]]
         return code
 
-    def get_verification_code(self, code):
+    def generate_verification_code(self, tracking_code):
+        """
+        Gera digito verificador para um determinado código de rastreio
+
+        :param:
+            tracking_code -> Código de rastreio sem digito verificador
+
+        :return:
+            Código de rastreio com digito verificador
+        """
         verification = self.client.service.geraDigitoVerificadorEtiquetas(
             usuario=self.user,
             senha=self.password,
-            etiquetas=code,
+            etiquetas=tracking_code,
         )
-        return code.replace(' ', str(verification[0]))
+        return tracking_code.replace(' ', str(verification[0]))
 
-    def get_tracking_code(self, service):
-        code = self.get_post_code(service=service)
-        return self.get_verification_code(code[0])
+    def get_new_tracking_code(self, service_id):
+        """
+        Utiliza os serviços do SIGEP para gerar um código de rastreio
+        com digito verificador
 
-    def _remove_dv_tracking_code(self, tracking_code):
-        return '%s%s' % (tracking_code[:-3], tracking_code[-2:])
+        :params:
+            service_id -> ID do serviço (PAC, SEDEX)
 
-    def create_plp(self, object_list):
+        :return:
+            Código de rastreio com digito verificador
+        """
+        code = self.request_tracking_codes(service=service_id)
+        return self.generate_verification_code(code[0])
+
+    def create_plp(self, intern_plp_number, object_list):
+        """
+        Gera uma nova PLP (Pré Lista de Postagem)
+        :params:
+            intern_plp_number -> Número de controle interno sequêncial para a geração da PLP
+            object_list -> [{
+                'tracking_code': '',
+                'service_code': '',
+                'weight': '',
+                'receiver_name': '',
+                'receiver_home_phone': '',
+                'receiver_mobile_phone': '',
+                'receiver_email': '',
+                'receiver_address': '',
+                'receiver_complement': '',
+                'receiver_number': '',
+                'receiver_neighborhood': '',
+                'receiver_city': '',
+                'receiver_state': '',
+                'receiver_zip_code': '',
+                'nfe_number': '',
+                'is_insurance': True,
+                'total': '', # preencher formatado se is_insurance for True
+                'dimension_height': '',
+                'dimension_width': '',
+                'dimension_length': '',
+                'dimension_diamater': '', # default 5
+            }]
+        """
         data = {
             'card': self.card,
             'contract': self.contract,
@@ -172,7 +273,7 @@ class Sigep(object):
         xml = xml.replace('\t', '')
         xml = xml.replace("> <", "><")
 
-        self.validate_xml(xml)
+        self._validate_xml(xml)
 
         tracking_code_list = []
         for item in object_list:
@@ -184,28 +285,21 @@ class Sigep(object):
             ', '.join(tracking_code_list),
         ))
 
-        # plp = Plp(user=user)
-        # plp_intern = get_plp_intern()
-
-        plp_number = self.client.service.fechaPlpVariosServicos(
+        plp_id = self.client.service.fechaPlpVariosServicos(
             xml=xml,
-            idPlpCliente=long(plp_intern),
+            idPlpCliente=intern_plp_number,
             cartaoPostagem=self.card,
             listaEtiquetas=tracking_code_list,
             usuario=self.user,
             senha=self.password,
         )
-        # plp.plp = plp_number
-        # plp.plp_intern = plp_intern
-        # plp.save()
 
-        logger.info(u'create_plp - tracking_code_list: {} plp: {} plp_intern: {}'.format(
-            ';'.join(tracking_code_list),
-            plp_number,
-            plp_intern
+        logger.info(u'create_plp - tracking_code_list: {} plp: {}'.format(
+            ', '.join(tracking_code_list),
+            plp_id,
         ))
 
-        return plp
-
-    # def consult_tracking_code(self, tracking_code):
-    #     return check_tracking_code(tracking_code)
+        return {
+            'plp_id': plp_id,
+            'tracking_code_list': tracking_code_list,
+        }
