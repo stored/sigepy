@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/sigepy/badge/?version=latest)](http://sigepy.readthedocs.io/en/latest/?badge=latest) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/23fb3660384f4d40ab467a2cf8139f1e)](https://www.codacy.com/app/joao-daher/sigepy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=stored/sigepy&amp;utm_campaign=Badge_Grade)
+
 # Sigepy
 
 Wrapper do webservice dos correios SIGEP Web para consulta preços e prazos, geração de etiquetas e PLP, e outros.
