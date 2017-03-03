@@ -16,54 +16,34 @@ class Sigep(object):
     SIGEP_PRODUCTION_URL = 'https://apps.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente?wsdl'
     validade_xsd = 'sigepy/xml/schema.xsd'
 
-    def __init__(self, **credentials):
+    def __init__(self, contract, cnpj, user, password, card, origin_zipcode, admin_code, regional_code, sender_info,
+                 sandbox=False):
         """
-        Cliente para o SIGEP (Sistema de Gerenciamento de Postagens)
-        dos correios
-        :param credentials: {
-                'contract': '',
-                'cnpj': '',
-                'user': '',
-                'password': '',
-                'card': '',
-                'origin_zipcode': '',
-                'admin_code': '',
-                'reginal_code': '',
-                'sender_info': {
-                    'name': '',
-                    'street': '',
-                    'number': '',
-                    'complement': '',
-                    'neighborhood': '',
-                    'zipcode': '',
-                    'city': '',
-                    'state': '',
-                    'phone': '',
-                    'fax': '',
-                    'email': '',
-                }
-                'sandbox': 'True',
-            }
+        Cliente para o SIGEP (Sistema de Gerenciamento de Postagens) dos correios
+
+        :param contract:
+        :param cnpj:
+        :param user:
+        :param password:
+        :param card:
+        :param origin_zipcode:
+        :param admin_code:
+        :param regional_code:
+        :param sender_info: name, street, number, complement, neighborhood, zipcode, city, state, phone, fax, email
+        :param sandbox: Sandbox mode
         """
-        if credentials.get('sandbox'):
-            self.url = self.SIGEP_SANDBOX_URL
-        else:
-            self.url = self.SIGEP_PRODUCTION_URL
+        self.url = self.SIGEP_SANDBOX_URL if sandbox else self.SIGEP_PRODUCTION_URL
+        self.contract = contract
+        self.cnpj = cnpj
+        self.user = user
+        self.password = password
+        self.card = card
+        self.origin_zipcode = origin_zipcode
+        self.admin_code = admin_code
+        self.regional_code = regional_code
+        self.sender_info = sender_info
 
-        self.contract = credentials['contract']
-        self.cnpj = credentials['cnpj']
-        self.user = credentials['user']
-        self.password = credentials['password']
-        self.card = credentials['card']
-        self.origin_zipcode = credentials['origin_zipcode']
-        self.admin_code = credentials['admin_code']
-        self.reginal_code = credentials['reginal_code']
-        self.sender_info = credentials['sender_info']
-
-        self.client = Client(
-            self.url,
-            location=self.url.replace('?wsdl', '')
-        )
+        self.client = Client(self.url, location=self.url.replace('?wsdl', ''))
 
     def _remove_dv_tracking_code(self, tracking_code):
         """
@@ -75,8 +55,8 @@ class Sigep(object):
 
     def _validate_xml(self, xml):
         """
-        Valida se o XML da PLP é valido baseado no schema.xsd
-        se for valido não retorna nada
+        Valida se o XML da PLP é valido baseado no schema.xsd se for valido não retorna nada
+
         :param xml: Xml que contem a PLP gerada
         :return:
         :raises: AssertException, se inválido
@@ -93,6 +73,7 @@ class Sigep(object):
     def request_xml_plp(self, plp_number, tracking_code_list):
         """
         Consulta PLP já gerada
+
         :param plp_number: Número da PLP gerada
         :param tracking_code_list: lista de códigos de rastreio
         :return: XML contendo as PLPs geradas para os códigos de rastreio informados
@@ -112,6 +93,7 @@ class Sigep(object):
     def search_service(self):
         """
         Lista os serviços disponíveis para um determinado contrato
+
         :return: XML com os serviços disponíveis para o contrato
         """
         return self.client.service.buscaServicos(
@@ -124,6 +106,7 @@ class Sigep(object):
     def check_service_available(self, code, zip_code):
         """
         Retorna um booleano, informando se o serviço esta ou não disponível
+
         :param code:
         :param zip_code:
         :return: True/False or {'mensagem_erro': 'mensagem do erro'}
@@ -154,6 +137,7 @@ class Sigep(object):
     def get_client_data(self):
         """
         Busca dados referênte ao contrato no SIGEP
+
         :return: XML contendo informações dos contratos do cliente
         """
         self.client.service.buscaCliente(
@@ -166,6 +150,7 @@ class Sigep(object):
     def request_tracking_codes(self, service_id, amount=1):
         """
         Solicita novos códigos de rastreio para as etiquetas
+
         :param service_id: ID do serviço (PAC, SEDEX)
         :param amount: Quantidade de etiquetas a serem geradas
         :return: lista com as etiquetas já com o digito verificador.
@@ -186,6 +171,7 @@ class Sigep(object):
     def generate_verification_code(self, tracking_code):
         """
         Gera digito verificador para um determinado código de rastreio
+
         :param tracking_code: Código de rastreio sem digito verificador
         :return: Código de rastreio com digito verificador
         """
@@ -199,6 +185,7 @@ class Sigep(object):
     def get_new_tracking_code(self, service_id):
         """
         Utiliza os serviços do SIGEP para gerar um código de rastreio com digito verificador
+
         :param service_id: ID do serviço (PAC, SEDEX)
         :return: Código de rastreio com digito verificador
         """
@@ -208,6 +195,7 @@ class Sigep(object):
     def create_plp(self, intern_plp_number, object_list):
         """
         Gera uma nova PLP (Pré Lista de Postagem)
+
         :param intern_plp_number: Número de controle interno sequêncial para a geração da PLP
         :param object_list:
         :return:
