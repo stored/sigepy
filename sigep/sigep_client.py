@@ -2,7 +2,6 @@
 import os
 import logging
 import StringIO
-from sigep import choices
 from suds import WebFault
 from suds.client import Client
 
@@ -13,7 +12,8 @@ logger = logging.getLogger('sigep.webservice')
 
 
 class Sigep(object):
-    schematron = None
+    SIGEP_SANDBOX_URL = 'https://apphom.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente?wsdl'
+    SIGEP_PRODUCTION_URL = 'https://apps.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente?wsdl'
     validade_xsd = 'sigepy/xml/schema.xsd'
 
     def __init__(self, **credentials):
@@ -48,9 +48,9 @@ class Sigep(object):
             }
         """
         if credentials.get('sandbox'):
-            self.url = choices.SIGEP_SANDBOX_URL
+            self.url = self.SIGEP_SANDBOX_URL
         else:
-            self.url = choices.SIGEP_PRODUCTION_URL
+            self.url = self.SIGEP_PRODUCTION_URL
 
         self.contract = credentials['contract']
         self.cnpj = credentials['cnpj']
