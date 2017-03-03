@@ -1,6 +1,6 @@
 # coding: utf-8
 import os
-from app import choices
+from sigep import choices
 
 """
 SIGEP_ADMINISTRATION_CODE = '14502607'  # OK
