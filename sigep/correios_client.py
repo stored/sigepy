@@ -48,7 +48,6 @@ class CorreiosSROClient(object):
                 'tracking_code': unicode(getattr(objeto, 'numero', u'')),
                 'erro': unicode(getattr(objeto, 'erro', u'')),
             }
-            return data
 
         return {
             'status': True,
