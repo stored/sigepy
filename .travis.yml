@@ -1,6 +1,6 @@
 language: python
 before_install:
-    - pip install pytest pytest-cov
+    - pip install pytest pytest-cov httpretty
 install:
   - pip install .
   - pip install -r requirements.txt
