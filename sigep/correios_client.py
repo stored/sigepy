@@ -19,8 +19,8 @@ class CorreiosSROClient(object):
         102 - Os eventos serão retornados no idioma ingles
     """
 
-    def __init__(self, affiliation_id, password, url='https://webservice.correios.com.br/service/rastro/Rastro.wsdl', timeout=3):
-        self.client = Client(url, timeout=timeout)
+    def __init__(self, affiliation_id, password, url='https://webservice.correios.com.br/service/rastro/Rastro.wsdl'):
+        self.client = Client(url)
         self.affiliation_id = affiliation_id
         self.password = password
 
@@ -38,8 +38,6 @@ class CorreiosSROClient(object):
             resultado=result_type,
             objetos=tracking_code
         )
-
-        data = []
         objeto = response.objeto[0]
 
         if hasattr(objeto, 'erro'):
