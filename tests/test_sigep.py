@@ -228,5 +228,53 @@ class TestSigep():
         body = fake_body()
         httpretty.register_uri(httpretty.POST, SOAP_URL, data=data, body=body)
 
-        data = client.create_plp(intern_plp_number='003', object_list=['PC0000001HK', 'PC0000002HK'])
+        obj_list = [
+            {
+                'tracking_code': 'PC0000001HK',
+                'service_code': '1',
+                'weight': '1',
+                'receiver_name': 'Joao Daher',
+                'receiver_home_phone': '1122223333',
+                'receiver_mobile_phone': '',
+                'receiver_email': 'joao@stored.com',
+                'receiver_address': 'Rua Galileu Galilei',
+                'receiver_complement': '',
+                'receiver_number': '1067',
+                'receiver_neighborhood': 'Jardim Iraja',
+                'receiver_city': 'Passos',
+                'receiver_state': 'MG',
+                'receiver_zip_code': '37902000',
+                'nfe_number': '3323232323',
+                'is_insurance': True,
+                'total': '300',
+                'dimension_height': '5',
+                'dimension_width': '5',
+                'dimension_length': '5',
+                'dimension_diamater': '5', # default 5
+            },
+            {
+                'tracking_code': 'PC0000002HK',
+                'service_code': '1',
+                'weight': '1',
+                'receiver_name': 'Joao Daher',
+                'receiver_home_phone': '1122223333',
+                'receiver_mobile_phone': '',
+                'receiver_email': 'joao@stored.com',
+                'receiver_address': 'Rua Galileu Galilei',
+                'receiver_complement': '',
+                'receiver_number': '1067',
+                'receiver_neighborhood': 'Jardim Iraja',
+                'receiver_city': 'Passos',
+                'receiver_state': 'MG',
+                'receiver_zip_code': '37902000',
+                'nfe_number': '3323232323',
+                'is_insurance': True,
+                'total': '300',
+                'dimension_height': '5',
+                'dimension_width': '5',
+                'dimension_length': '5',
+                'dimension_diamater': '5',  # default 5
+            }
+        ]
+        data = client.create_plp(intern_plp_number='003', object_list=obj_list)
         assert data == ['OK']

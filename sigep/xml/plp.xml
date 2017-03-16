@@ -11,7 +11,7 @@
     </plp>
     <remetente>
         <numero_contrato>{{ contract }}</numero_contrato>
-        <numero_diretoria>{{ reginal_code }}</numero_diretoria>
+        <numero_diretoria>{{ regional_code }}</numero_diretoria>
         <codigo_administrativo>{{ admin_code }}</codigo_administrativo>
 
         <nome_remetente><![CDATA[{{ sender_info.name }}]]></nome_remetente>

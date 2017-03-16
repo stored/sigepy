@@ -203,13 +203,13 @@ class Sigep(object):
         data = {
             'card': self.card,
             'contract': self.contract,
-            'reginal_code': self.regional_code,
+            'regional_code': self.regional_code,
             'admin_code': self.admin_code,
             'sender_info': self.sender_info,
             'object_list': object_list,
         }
 
-        xml = Template('sigep/xml/plp.xml', data)
+        xml = Template('sigep/xml/plp.xml').render(**data)
         xml = xml.encode('ascii', 'xmlcharrefreplace')
         xml = xml.replace("  ", "")
         xml = xml.replace('\n', '')
