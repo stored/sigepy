@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding='ISO-8859-1' ?>
+<correioslog>
+    <tipo_arquivo>Postagem</tipo_arquivo>
+    <versao_arquivo>2.3</versao_arquivo>
+    <plp>
+        <id_plp />
+        <valor_global />
+        <mcu_unidade_postagem/>
+        <nome_unidade_postagem/>
+        <cartao_postagem>{{ card }}</cartao_postagem>
+    </plp>
+    <remetente>
+        <numero_contrato>{{ contract }}</numero_contrato>
+        <numero_diretoria>{{ reginal_code }}</numero_diretoria>
+        <codigo_administrativo>{{ admin_code }}</codigo_administrativo>
+
+        <nome_remetente><![CDATA[{{ sender_info.name }}]]></nome_remetente>
+        <logradouro_remetente><![CDATA[{{ sender_info.street }}]]></logradouro_remetente>
+        <numero_remetente>{{ sender_info.number }}</numero_remetente>
+        <complemento_remetente><![CDATA[{{ sender_info.complement }}]]></complemento_remetente>
+        <bairro_remetente><![CDATA[{{ sender_info.neighborhood }}]]></bairro_remetente>
+        <cep_remetente><![CDATA[{{ sender_info.zipcode }}]]></cep_remetente>
+        <cidade_remetente><![CDATA[{{ sender_info.city }}]]></cidade_remetente>
+        <uf_remetente>{{ sender_info.state }}</uf_remetente>
+        <telefone_remetente><![CDATA[{{ sender_info.phone }}]]></telefone_remetente>
+        <fax_remetente><![CDATA[{{ sender_info.fax }}]]></fax_remetente>
+        <email_remetente><![CDATA[{{ sender_info.email }}]]></email_remetente>
+    </remetente>
+    <forma_pagamento/>
+
+    {% for item in object_list %}
+        <objeto_postal>
+            <numero_etiqueta>{{ item.tracking_code }}</numero_etiqueta>
+            <codigo_objeto_cliente />
+            <codigo_servico_postagem>{{ item.service_code }}</codigo_servico_postagem>
+
+            <cubagem />
+            <peso>{{ item.weight }}</peso>
+            <rt1 />
+            <rt2 />
+
+            <destinatario>
+                <nome_destinatario><![CDATA[{{ item.receiver_name }}]]></nome_destinatario>
+                <telefone_destinatario><![CDATA[{{ item.receiver_home_phone }}]]> </telefone_destinatario>
+                <celular_destinatario><![CDATA[{{ item.receiver_mobile_phone }}]]></celular_destinatario>
+                <email_destinatario><![CDATA[{{ item.receiver_email }}]]></email_destinatario>
+                <logradouro_destinatario><![CDATA[{{ item.receiver_address }}]]></logradouro_destinatario>
+                <complemento_destinatario> <![CDATA[{{ item.receiver_complement }}]]></complemento_destinatario>
+                <numero_end_destinatario>{{ item.receiver_number }}</numero_end_destinatario>
+            </destinatario>
+
+            <nacional>
+                <bairro_destinatario><![CDATA[{{ item.receiver_neighborhood }}]]></bairro_destinatario>
+                <cidade_destinatario><![CDATA[{{ item.receiver_city }}]]></cidade_destinatario>
+                <uf_destinatario>{{ item.receiver_state }}</uf_destinatario>
+                <cep_destinatario> <![CDATA[{{ item.receiver_zip_code }}]]></cep_destinatario>
+                <codigo_usuario_postal />
+                <centro_custo_cliente />
+                
+                {% if item.nfe_number %}
+                    <numero_nota_fiscal>{{ item.nfe_number }}</numero_nota_fiscal>
+                {% else %}
+                    <numero_nota_fiscal />
+                {% endif %}         
+                
+                <serie_nota_fiscal />
+                <valor_nota_fiscal />
+                <natureza_nota_fiscal />
+                <descricao_objeto><![CDATA[]]></descricao_objeto>
+                <valor_a_cobrar></valor_a_cobrar>
+            </nacional>
+
+            <servico_adicional>
+                <codigo_servico_adicional>025</codigo_servico_adicional>
+                {% if item.is_insurance %}
+                    <codigo_servico_adicional>019</codigo_servico_adicional>
+                    <valor_declarado>{{ item.total }}</valor_declarado>
+                {% else %}
+                    <valor_declarado />
+                {% endif %}
+            </servico_adicional>
+
+            <dimensao_objeto>
+                <tipo_objeto>002</tipo_objeto>
+                <dimensao_altura>{{ item.dimension_height }}</dimensao_altura>
+                <dimensao_largura>{{ item.dimension_width }}</dimensao_largura>
+                <dimensao_comprimento>{{ item.dimension_length }}</dimensao_comprimento>
+                <dimensao_diametro>{{ item.dimension_diamater }}</dimensao_diametro>
+            </dimensao_objeto>
+            
+            <data_postagem_sara />
+            <status_processamento>0</status_processamento>
+            <numero_comprovante_postagem />
+            <valor_cobrado></valor_cobrado>
+        </objeto_postal>
+    {% endfor %}
+ </correioslog>
