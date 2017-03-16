@@ -1,6 +1,7 @@
 [![Documentation Status](https://readthedocs.org/projects/sigepy/badge/?version=latest)](http://sigepy.readthedocs.io/en/latest/?badge=latest)
 [![Code Climate](https://codeclimate.com/github/stored/sigepy.png)](https://codeclimate.com/github/stored/sigepy)
 [![Build Status](https://travis-ci.org/stored/sigepy.png)](https://travis-ci.org/stored/sigepy)
+[![Coverage Status](https://coveralls.io/repos/github/stored/sigepy/badge.svg?branch=master)](https://coveralls.io/github/stored/sigepy?branch=master)
 
 # Sigepy
 
