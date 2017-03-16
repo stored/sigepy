@@ -78,10 +78,6 @@ class TestSigep:
         assert data == ['SEDEX', 'PAC']
 
     def test_service_is_available(self, client):
-        httpretty.disable()
-        data = client.check_service_available(code='1', zip_code='37902000')
-        assert data is False
-
         httpretty.enable()
         data = """
                <x:Envelope xmlns:x="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cli="http://cliente.bean.master.sigep.bsb.correios.com.br/">
