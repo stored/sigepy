@@ -117,3 +117,4 @@ class TestSRO:
         httpretty.register_uri(httpretty.POST, SOAP_URL, data=data, body=body)
         data = client.find_by_tracking_code(tracking_code='JF598971235BR')
         assert data['status'] is False
+        
