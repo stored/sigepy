@@ -1,4 +1,7 @@
-[![Documentation Status](https://readthedocs.org/projects/sigepy/badge/?version=latest)](http://sigepy.readthedocs.io/en/latest/?badge=latest) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/23fb3660384f4d40ab467a2cf8139f1e)](https://www.codacy.com/app/joao-daher/sigepy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=stored/sigepy&amp;utm_campaign=Badge_Grade)
+[![Documentation Status](https://readthedocs.org/projects/sigepy/badge/?version=latest)](http://sigepy.readthedocs.io/en/latest/?badge=latest)
+[![Code Climate](https://codeclimate.com/github/stored/sigepy.png)](https://codeclimate.com/github/stored/sigepy)
+[![Build Status](https://travis-ci.org/stored/sigepy.png)](https://travis-ci.org/stored/sigepy)
+[![Coverage Status](https://coveralls.io/repos/github/stored/sigepy/badge.svg?branch=master)](https://coveralls.io/github/stored/sigepy?branch=master)
 
 # Sigepy
 
@@ -12,9 +15,9 @@ Wrapper do webservice dos correios SIGEP Web para consulta preços e prazos, ger
 * Gerar e enviar o XML da pré-lista de postagem (PLP) para o Correios.   
 * Gerar novos números de etiquetas de postagem.
 * Criar e verificar validade do dígito verificador das etiquetas.   
-* Gerar o relatório da PLP no formato PDF.   
-* Gerar as etiquetas de postagem no formato PDF.
-* Gerar em PDF as chancelas para cada tipo de serviço (logo de cada tipo de serviço). 
+* Gerar o relatório da PLP.   
+* Gerar as etiquetas de postagem.
+* Gerar as chancelas para cada tipo de serviço (logo de cada tipo de serviço). 
 
 
 ## Requisitos

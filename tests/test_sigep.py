@@ -9,7 +9,7 @@ dev = {
     'cnpj': '0000.0000/0000-00',
     'user': 'sigepy', 'password': 'sigepy@pass',
     'origin_zipcode': '14020273',
-    'card': '0001', 'admin_code': '0001', 'regional_code': '0002',
+    'card': '0001', 'admin_code': '0001', 'regional_code': 60,
     'sender_info': {
         'name': 'Sigepy',
         'street': 'Av Presidente Vargas',
@@ -18,7 +18,7 @@ dev = {
         'neighborhood': '',
         'zipcode': '14020273',
         'city': u'Ribeirão Preto',
-        'state': u'São Paulo',
+        'state': 'SP',
         'phone': '',
         'fax': '',
         'email': 'dev@stored.com.br',
@@ -40,51 +40,7 @@ def fake_body(content='OK', tag='ID'):
 SOAP_URL = 'https://apps.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente'
 
 
-class TestSigep():
-
-    object_list = [{
-        'card': '',
-        'contract': '',
-        'reginal_code': '',
-        'admin_code': '',
-        'sender_info': {
-            'name': '',
-            'street': '',
-            'number': '',
-            'complement': '',
-            'neighborhood': '',
-            'zipcode': '',
-            'city': '',
-            'state': '',
-            'phone': '',
-            'fax': '',
-            'email': '',
-        },
-        'object_list': [{
-            'tracking_code': '',
-            'service_code': '',
-            'weight': '',
-            'receiver_name': '',
-            'receiver_home_phone': '',
-            'receiver_mobile_phone': '',
-            'receiver_email': '',
-            'receiver_address': '',
-            'receiver_complement': '',
-            'receiver_number': '',
-            'receiver_neighborhood': '',
-            'receiver_city': '',
-            'receiver_state': '',
-            'receiver_zip_code': '',
-            'nfe_number': '',
-            'is_insurance': True,
-            'total': '', # preencher formatado se is_insurance for True
-            'dimension_height': '',
-            'dimension_width': '',
-            'dimension_length': '',
-            'dimension_diamater': '', # default 5
-        }],
-    }]
-
+class TestSigep:
     @pytest.fixture
     def client(self):
         from sigep.sigep_client import Sigep
@@ -224,9 +180,60 @@ class TestSigep():
                         </cli:fechaPlpVariosServicos>
                     </x:Body>
                 </x:Envelope>
-               """.format(user=client.user, password=client.password, plp_id='003', post_card='ABC123', label_list=['PC0000001HK', 'PC0000002HK'])
-        body = fake_body()
+               """.format(user=client.user, password=client.password, plp_id='003', post_card='ABC123', label_list=['PC000001HK', 'PC000002HK'])
+        body = fake_body(10)
         httpretty.register_uri(httpretty.POST, SOAP_URL, data=data, body=body)
 
-        data = client.create_plp(intern_plp_number='003', object_list=['PC0000001HK', 'PC0000002HK'])
-        assert data == ['OK']
+        obj_list = [
+            {
+                'tracking_code': 'PC000001HK',
+                'service_code': '1',
+                'weight': '1',
+                'receiver_name': 'Joao Daher',
+                'receiver_home_phone': '1122223333',
+                'receiver_mobile_phone': '',
+                'receiver_email': 'joao@stored.com',
+                'receiver_address': 'Rua Galileu Galilei',
+                'receiver_complement': '',
+                'receiver_number': '1067',
+                'receiver_neighborhood': 'Jardim Iraja',
+                'receiver_city': 'Passos',
+                'receiver_state': 'MG',
+                'receiver_zip_code': '37902000',
+                'nfe_number': '332323',
+                'is_insurance': True,
+                'total': '300',
+                'dimension_height': '15',
+                'dimension_width': '15',
+                'dimension_length': '20',
+                'dimension_diameter': '5',
+            },
+            {
+                'tracking_code': 'PC000002HK',
+                'service_code': '1',
+                'weight': '1',
+                'receiver_name': 'Joao Daher',
+                'receiver_home_phone': '1122223333',
+                'receiver_mobile_phone': '',
+                'receiver_email': 'joao@stored.com',
+                'receiver_address': 'Rua Galileu Galilei',
+                'receiver_complement': '',
+                'receiver_number': '1067',
+                'receiver_neighborhood': 'Jardim Iraja',
+                'receiver_city': 'Passos',
+                'receiver_state': 'MG',
+                'receiver_zip_code': '37902000',
+                'nfe_number': '3323323',
+                'is_insurance': True,
+                'total': '300',
+                'dimension_height': '15',
+                'dimension_width': '15',
+                'dimension_length': '20',
+                'dimension_diameter': '5',
+            }
+        ]
+        data = client.create_plp(intern_plp_number='003', object_list=obj_list)
+        assert data == {
+            'plp_id': 10,
+            'tracking_code_list': [client._remove_dv_tracking_code(code) for code in ['PC000001HK', 'PC000002HK']],
+        }

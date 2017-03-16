@@ -11,7 +11,7 @@
     </plp>
     <remetente>
         <numero_contrato>{{ contract }}</numero_contrato>
-        <numero_diretoria>{{ reginal_code }}</numero_diretoria>
+        <numero_diretoria>{{ regional_code }}</numero_diretoria>
         <codigo_administrativo>{{ admin_code }}</codigo_administrativo>
 
         <nome_remetente><![CDATA[{{ sender_info.name }}]]></nome_remetente>
@@ -85,7 +85,7 @@
                 <dimensao_altura>{{ item.dimension_height }}</dimensao_altura>
                 <dimensao_largura>{{ item.dimension_width }}</dimensao_largura>
                 <dimensao_comprimento>{{ item.dimension_length }}</dimensao_comprimento>
-                <dimensao_diametro>{{ item.dimension_diamater }}</dimensao_diametro>
+                <dimensao_diametro>{{ item.dimension_diameter }}</dimensao_diametro>
             </dimensao_objeto>
             
             <data_postagem_sara />
