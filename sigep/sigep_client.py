@@ -4,7 +4,6 @@ import logging
 import os
 
 import jinja2
-from jinja2 import Template
 from lxml import etree
 from suds import WebFault
 from suds.client import Client
@@ -166,7 +165,7 @@ class Sigep(object):
         )
         code = post.split(',')
         if amount == 1:
-            return [code[0]]
+            code = [code[0]]
         return code
 
     def generate_verification_code(self, tracking_code):
@@ -190,7 +189,7 @@ class Sigep(object):
         :param service_id: ID do serviço (PAC, SEDEX)
         :return: Código de rastreio com dígito verificador
         """
-        code = self.request_tracking_codes(service=service_id)
+        code = self.request_tracking_codes(service_id=service_id)
         return self.generate_verification_code(code[0])
 
     def create_plp(self, intern_plp_number, object_list):

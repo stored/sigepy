@@ -78,6 +78,10 @@ class TestSigep:
         assert data == ['SEDEX', 'PAC']
 
     def test_service_is_available(self, client):
+        httpretty.disable()
+        data = client.check_service_available(code='1', zip_code='37902000')
+        assert data is False
+
         httpretty.enable()
         data = """
                <x:Envelope xmlns:x="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cli="http://cliente.bean.master.sigep.bsb.correios.com.br/">
@@ -141,8 +145,51 @@ class TestSigep:
         body = fake_body()
         httpretty.register_uri(httpretty.POST, SOAP_URL, data=data, body=body)
 
+        # multiple at once
         data = client.request_tracking_codes(service_id=7)
         assert data == ['OK']
+
+    def test_new_tracking_code(self, client):
+        httpretty.enable()
+        data = """
+                       <x:Envelope xmlns:x="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cli="http://cliente.bean.master.sigep.bsb.correios.com.br/">
+                            <x:Header/>
+                            <x:Body>
+                                <cli:buscaCliente>
+                                    <idContrato>{contract}</idContrato>
+                                    <idCartaoPostagem>{card}</idCartaoPostagem>
+                                    <usuario>{user}</usuario>
+                                    <senha>{password}</senha>
+                                </cli:buscaCliente>
+                            </x:Body>
+                        </x:Envelope>
+                       """.format(contract=client.contract, card=client.card, user=client.user,
+                                  password=client.password)
+        body = fake_body(42)
+        httpretty.register_uri(httpretty.POST, SOAP_URL, data=data, body=body)
+
+        httpretty.enable()
+        data = """
+                       <x:Envelope xmlns:x="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cli="http://cliente.bean.master.sigep.bsb.correios.com.br/">
+                            <x:Header/>
+                            <x:Body>
+                                <cli:solicitaEtiquetas>
+                                    <tipoDestinatario>{destination_type}</tipoDestinatario>
+                                    <identificador>{identifier}</identificador>
+                                    <idServico>{service_id}</idServico>
+                                    <qtdEtiquetas>{qty}</qtdEtiquetas>
+                                    <usuario>{user}</usuario>
+                                    <senha>{password}</senha>
+                                </cli:solicitaEtiquetas>
+                            </x:Body>
+                        </x:Envelope>
+                       """.format(user=client.user, password=client.password, destination_type='1', identifier='001',
+                                  service_id=7, qty=1)
+        body = fake_body()
+        httpretty.register_uri(httpretty.POST, SOAP_URL, data=data, body=body)
+
+        data = client.get_new_tracking_code(service_id=7)
+        assert data == 'OK'
 
     def test_verifier_digit(self, client):
         httpretty.enable()
