@@ -3,6 +3,7 @@ import StringIO
 import logging
 import os
 
+import jinja2
 from jinja2 import Template
 from lxml import etree
 from suds import WebFault
@@ -14,7 +15,8 @@ logger = logging.getLogger('sigep.webservice')
 class Sigep(object):
     SIGEP_SANDBOX_URL = 'https://apphom.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente?wsdl'
     SIGEP_PRODUCTION_URL = 'https://apps.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente?wsdl'
-    VALIDATE_XSD = 'sigep/xml/schema.xsd'
+    TEMPLATE = 'xml/plp.xml'
+    TEMPLATE_XSD = 'xml/schema.xsd'
 
     def __init__(self, contract, cnpj, user, password, card, origin_zipcode, admin_code, regional_code, sender_info,
                  sandbox=False):
@@ -61,8 +63,7 @@ class Sigep(object):
         :return:
         :raises: AssertException, se inválido
         """
-        filename = os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), self.VALIDATE_XSD)
+        filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.TEMPLATE_XSD)
 
         parsed_file = etree.parse(filename)
         schema = etree.XMLSchema(etree=parsed_file)
@@ -209,7 +210,9 @@ class Sigep(object):
             'object_list': object_list,
         }
 
-        xml = Template('sigep/xml/plp.xml').render(**data)
+        template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.TEMPLATE)
+        path, filename = os.path.split(template_path)
+        xml = jinja2.Environment(loader=jinja2.FileSystemLoader(path or './')).get_template(filename).render(data)
         xml = xml.encode('ascii', 'xmlcharrefreplace')
         xml = xml.replace("  ", "")
         xml = xml.replace('\n', '')

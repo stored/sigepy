@@ -85,7 +85,7 @@
                 <dimensao_altura>{{ item.dimension_height }}</dimensao_altura>
                 <dimensao_largura>{{ item.dimension_width }}</dimensao_largura>
                 <dimensao_comprimento>{{ item.dimension_length }}</dimensao_comprimento>
-                <dimensao_diametro>{{ item.dimension_diamater }}</dimensao_diametro>
+                <dimensao_diametro>{{ item.dimension_diameter }}</dimensao_diametro>
             </dimensao_objeto>
             
             <data_postagem_sara />

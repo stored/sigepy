@@ -14,9 +14,9 @@ Wrapper do webservice dos correios SIGEP Web para consulta preços e prazos, ger
 * Gerar e enviar o XML da pré-lista de postagem (PLP) para o Correios.   
 * Gerar novos números de etiquetas de postagem.
 * Criar e verificar validade do dígito verificador das etiquetas.   
-* Gerar o relatório da PLP no formato PDF.   
-* Gerar as etiquetas de postagem no formato PDF.
-* Gerar em PDF as chancelas para cada tipo de serviço (logo de cada tipo de serviço). 
+* Gerar o relatório da PLP.   
+* Gerar as etiquetas de postagem.
+* Gerar as chancelas para cada tipo de serviço (logo de cada tipo de serviço). 
 
 
 ## Requisitos
