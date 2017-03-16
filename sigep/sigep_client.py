@@ -14,7 +14,7 @@ logger = logging.getLogger('sigep.webservice')
 class Sigep(object):
     SIGEP_SANDBOX_URL = 'https://apphom.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente?wsdl'
     SIGEP_PRODUCTION_URL = 'https://apps.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente?wsdl'
-    validade_xsd = 'sigepy/xml/schema.xsd'
+    VALIDATE_XSD = 'sigep/xml/schema.xsd'
 
     def __init__(self, contract, cnpj, user, password, card, origin_zipcode, admin_code, regional_code, sender_info,
                  sandbox=False):
@@ -62,7 +62,7 @@ class Sigep(object):
         :raises: AssertException, se inválido
         """
         filename = os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), self.validade_xsd)
+            os.path.abspath(__file__)), self.VALIDATE_XSD)
 
         parsed_file = etree.parse(filename)
         schema = etree.XMLSchema(etree=parsed_file)
