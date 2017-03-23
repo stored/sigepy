@@ -1,8 +1,7 @@
 test:
-  script:
-  - apt-get update -qy
-  - apt-get install -y python-dev python-pip
-  - pip install pytest pytest-cov httpretty coveralls
-  - pip install .
-  - pip install -r requirements.txt
-  - python py.test --cov=sigep --cov-config .coveragerc -v --color=yes --showlocals tests/
+    image: python:3-alpine
+    script:
+        - pip install pytest pytest-cov httpretty coveralls
+        - pip install .
+        - pip install -r requirements.txt
+        - python py.test --cov=sigep --cov-config .coveragerc -v --color=yes --showlocals tests/
